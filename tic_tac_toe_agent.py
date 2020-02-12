@@ -42,12 +42,12 @@ class TicTacToeAgent:
             self.board[initial_move] = self.AGENT_SYMBOL
             return initial_move
 
-        # Recursively calculates complete possibility tree and logs if required.
+        # Recursively calculates complete possibility tree and logs result if required.
         possibility_tree = self.__get_possibility_tree(board=self.board)
         if self.PRINT_POSSIBILITY_TREE:
             print(json.dumps(possibility_tree, indent=4, sort_keys=False))
 
-        # Evaluates each position's branch score, sort by best score and display results if required.
+        # Evaluates each position's branch score, sorts by best score and displays results if required.
         next_moves = []
         for move, node in possibility_tree.items():
             branch_score = self.__evaluate_moves({move: node})
@@ -219,16 +219,14 @@ if __name__ == "__main__":
                      '4': 'X', '5': 'O', '6': 'O',
                      '1': ' ', '2': ' ', '3': 'X'}
 
-    # current_board = {'7': ' ', '8': ' ', '9': ' ',
-    #                  '4': ' ', '5': ' ', '6': ' ',
-    #                  '1': ' ', '2': ' ', '3': ' '}
-
+    TicTacToeAgent.PRINT_POSSIBILITY_TREE = True
+    TicTacToeAgent.PRINT_AVAILABLE_PLAYS_SCORE = True
     agent_symbol = 'X'
+
     agent = TicTacToeAgent(current_board, agent_symbol)
-    agent.print_board()
-    print(f"Agent symbol: {agent_symbol}")
     chosen_move = agent.get_move()
+
+    print(f"Agent symbol: {agent_symbol}")
     print(f'Chosen move: {chosen_move}')
-    print('')
     print('Final test board:')
     agent.print_board()
