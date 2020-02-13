@@ -18,7 +18,7 @@ class TicTacToeAgent:
     Tic tac toe playing AI Agent.
     """
 
-    PRINT_AVAILABLE_PLAYS_SCORE = True                   # :bool: Enables play evaluation on screen printing.
+    PRINT_AVAILABLE_PLAYS_SCORE = False                  # :bool: Enables play evaluation on screen printing.
     PRINT_POSSIBILITY_TREE = False                       # :bool: Enables possibility tree on screen printing.
     RANDOM_INITIAL_MOVES = False                         # :bool: First move of agent is random despite playing order.
     VICTORY_CONDITIONS = [                               # :list: Board formations indicating victory.
@@ -30,7 +30,7 @@ class TicTacToeAgent:
 
     def __init__(self, board: dict, agent_symbol: str, accuracy: float = 1):
         """
-        Agent constructor, stores given board situation and player symbols.
+        Agent constructor, stores given board situation and general states.
         :param board: Given board situation.
         :param agent_symbol: Symbol to be assigned to agent.
         """
@@ -49,7 +49,7 @@ class TicTacToeAgent:
         """
 
         # Returns random movement selection for first movement if applicable.
-        if (self.RANDOM_INITIAL_MOVES and self.__is_initial_move()) or self.__is_initial_move(1):
+        if (self.RANDOM_INITIAL_MOVES and self.__is_initial_move(2)) or self.__is_initial_move(1):
             return self.__get_random_move()
 
         # Returns calculated movement choice.
@@ -86,24 +86,24 @@ class TicTacToeAgent:
             print(json.dumps(possibility_tree, indent=4, sort_keys=False))
 
         # Evaluates each position's branch score.
-        next_moves = []
-        for move, node in possibility_tree.items():
-            branch_score = self.__evaluate_moves({move: node})
-            next_moves.append({
+        best_moves = []
+        for move, branch in possibility_tree.items():
+            branch_score = self.__evaluate_moves({move: branch})
+            best_moves.append({
                 'move': move,
                 'branch_score': round(branch_score, 7)
             })
 
         # Sorts by best score and displays results if required.
-        next_moves = sorted(next_moves, key=lambda k: k['branch_score'], reverse=True)
+        best_moves = sorted(best_moves, key=lambda k: k['branch_score'], reverse=True)
         if self.PRINT_AVAILABLE_PLAYS_SCORE:
             print()
-            for x in next_moves:
+            for x in best_moves:
                 print(f"-> Move: {x.get('move')} | Branch score: {x.get('branch_score')}")
 
-        # Randomizes chosen move amongst best equally scored moves.
-        best_move_score = next_moves[0].get('branch_score')
-        chosen_move = random.choice([x.get('move') for x in next_moves if x.get('branch_score') == best_move_score])
+        # Randomizes chosen move amongst equally scored best moves.
+        best_move_score = best_moves[0].get('branch_score')
+        chosen_move = random.choice([x.get('move') for x in best_moves if x.get('branch_score') == best_move_score])
         if self.PRINT_AVAILABLE_PLAYS_SCORE:
             print(f"Chosen move: {chosen_move}")
 
