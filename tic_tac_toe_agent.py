@@ -17,7 +17,7 @@ class TicTacToeAgent:
     Tic tac toe playing AI Agent.
     """
 
-    PRINT_AVAILABLE_PLAYS_SCORE = True                   # :bool: Enables play score on screen printing.
+    PRINT_AVAILABLE_PLAYS_SCORE = False                  # :bool: Enables play score on screen printing.
     PRINT_POSSIBILITY_TREE = False                       # :bool: Enables possibility tree on screen printing.
     RANDOM_INITIAL_MOVES = False                         # :bool: First move of agent is random despite playing order.
     VICTORY_CONDITIONS = [                               # :list: Board formations indicating victory.
