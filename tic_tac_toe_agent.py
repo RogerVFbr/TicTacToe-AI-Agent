@@ -207,14 +207,6 @@ class TicTacToeAgent:
 
         return 9-[v for k, v in self.board.items()].count(' ') < move
 
-    def __is_board_empty(self) -> bool:
-        """
-        Checks if internal board is empty.
-        :return: Boolean denoting if internal board is empty or not.
-        """
-
-        return len({v for k, v in self.board.items()}) == 1
-
     def __get_opponent_symbol(self) -> str:
         """
         Deduces opponent symbol.
