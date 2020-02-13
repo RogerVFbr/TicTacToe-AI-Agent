@@ -17,9 +17,9 @@ class TicTacToeAgent:
     Tic tac toe playing AI Agent.
     """
 
-    PRINT_AVAILABLE_PLAYS_SCORE = False                  # :bool: Enables play evaluation on screen printing.
+    PRINT_AVAILABLE_PLAYS_SCORE = True                  # :bool: Enables play evaluation on screen printing.
     PRINT_POSSIBILITY_TREE = False                       # :bool: Enables possibility tree on screen printing.
-    RANDOM_INITIAL_MOVES = False                         # :bool: First move of agent is random despite playing order.
+    RANDOM_INITIAL_MOVES = True                         # :bool: First move of agent is random despite playing order.
     VICTORY_CONDITIONS = [                               # :list: Board formations indicating victory.
         (1, 2, 3), (1, 4, 7), (1, 5, 9), (2, 5, 8),
         (3, 5, 7), (3, 6, 9), (4, 5, 6), (7, 8, 9)
@@ -44,22 +44,23 @@ class TicTacToeAgent:
 
         # If enabled, first move of agent is random, being the first or second to play.
         if self.RANDOM_INITIAL_MOVES:
-            initial_move = self.get_initial_moves()
-
-            # If initial move has been detected, updates internal board, log and returns move.
-            if initial_move:
+            if self.is_initial_move():
+                initial_move = self.get_random_move()
                 if self.PRINT_AVAILABLE_PLAYS_SCORE:
-                    print(f'0 -> Special initial move: {initial_move}')
+                    print(f'0 -> Random move: {initial_move}')
+
+                # Updates internal board and returns move.
                 self.board[initial_move] = self.agent_symbol
                 return initial_move
 
         # Random initial moves is disabled, agent plays randomly only if it's the first to play.
         else:
             if self.is_board_empty():
-                initial_move = self.get_initial_move()
+                initial_move = self.get_random_move()
                 if self.PRINT_AVAILABLE_PLAYS_SCORE:
-                    print(f'0 -> Special initial move: {initial_move}')
-                # Update internal board with chosen move end return value.
+                    print(f'0 -> Random move: {initial_move}')
+
+                # Update internal board with chosen move end returns move.
                 self.board[initial_move] = self.agent_symbol
                 return initial_move
 
@@ -117,7 +118,6 @@ class TicTacToeAgent:
 
         # Updates current branch level value.
         branch_level += 1
-        # print(branch_level, str(available_plays))
 
         # Iterates on available board positions.
         for play in available_plays:
@@ -185,33 +185,25 @@ class TicTacToeAgent:
 
         return None, 0
 
-    @staticmethod
-    def get_initial_move() -> str:
+    def get_random_move(self) -> str:
         """
-        Randomizes initial move according to given positions.
+        Randomizes initial move considering free positions.
         :return: String denoting move.
         """
 
-        return str(random.choice(range(1, 10)))
+        return random.choice([k for k, v in self.board.items() if not v.strip()])
 
-    def get_initial_moves(self) -> str:
+    def is_initial_move(self) -> bool:
         """
-        Randomizes initial move according to given positions.
-        :return: String denoting move.
+        Checks if it's an initial move. Might be first of second board move.
+        :return: Boolean denoting if it's first or second move.
         """
 
-        no_of_moves = ''.join([v for k, v in self.board.items()]).replace(self.agent_symbol, '*')\
-            .replace(self.opponent_symbol, '*').count('*')
-        available_positions = [k for k, v in self.board.items() if not v.strip()]
-        if no_of_moves < 2:
-            choice = random.choice(available_positions)
-            return choice
-        else:
-            return None
+        return 9-[v for k, v in self.board.items()].count(' ') < 2
 
     def is_board_empty(self) -> bool:
         """
-        Checks if internal board is empty denoting first play.
+        Checks if internal board is empty.
         :return: Boolean denoting if internal board is empty or not.
         """
 
