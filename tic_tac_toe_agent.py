@@ -17,11 +17,13 @@ class TicTacToeAgent:
     Tic tac toe playing AI Agent.
     """
 
-    PRINT_AVAILABLE_PLAYS_SCORE = False                         # :bool: Enables play score on screen printing.
-    PRINT_POSSIBILITY_TREE = False                              # :bool: Enables possibility tree on screen printing.
-    VICTORY_CONDITIONS = [                                      # :list: Board formations indicating victory.
-        ('1', '2', '3'), ('1', '4', '7'), ('1', '5', '9'),
-        ('2', '5', '8'), ('3', '5', '7'), ('3', '6', '9'),
+    PRINT_AVAILABLE_PLAYS_SCORE = True                   # :bool: Enables play score on screen printing.
+    PRINT_POSSIBILITY_TREE = False                       # :bool: Enables possibility tree on screen printing.
+    RANDOM_INITIAL_MOVES = False                         # :bool: First move of agent is random despite playing order.
+    VICTORY_CONDITIONS = [                               # :list: Board formations indicating victory.
+        ('1', '2', '3'), ('1', '4', '7'),
+        ('1', '5', '9'), ('2', '5', '8'),
+        ('3', '5', '7'), ('3', '6', '9'),
         ('4', '5', '6'), ('7', '8', '9')
     ]
 
@@ -42,15 +44,26 @@ class TicTacToeAgent:
         :return: Integer denoting result.
         """
 
-        # If board is empty, get special initial position and logs if required.
-        if self.is_board_empty():
-            initial_move = self.get_initial_move()
-            if self.PRINT_AVAILABLE_PLAYS_SCORE:
-                print(f'0 -> Special initial move: {initial_move}')
+        # If enabled, first move of agent is random, being the first or second to play.
+        if self.RANDOM_INITIAL_MOVES:
+            initial_move = self.get_initial_moves()
 
-            # Update internal board with chosen move end return value.
-            self.board[initial_move] = self.agent_symbol
-            return initial_move
+            # If initial move has been detected, updates internal board, log and returns move.
+            if initial_move:
+                if self.PRINT_AVAILABLE_PLAYS_SCORE:
+                    print(f'0 -> Special initial move: {initial_move}')
+                self.board[initial_move] = self.agent_symbol
+                return initial_move
+
+        # Random initial moves is disabled, agent plays randomly only if it's the first to play.
+        else:
+            if self.is_board_empty():
+                initial_move = self.get_initial_move()
+                if self.PRINT_AVAILABLE_PLAYS_SCORE:
+                    print(f'0 -> Special initial move: {initial_move}')
+                # Update internal board with chosen move end return value.
+                self.board[initial_move] = self.agent_symbol
+                return initial_move
 
         # Recursively calculates complete possibility tree and logs result if required.
         possibility_tree = self.__get_possibility_tree(board=self.board)
@@ -182,6 +195,21 @@ class TicTacToeAgent:
         """
 
         return str(random.choice(range(1, 10)))
+
+    def get_initial_moves(self) -> str:
+        """
+        Randomizes initial move according to given positions.
+        :return: String denoting move.
+        """
+
+        no_of_moves = ''.join([v for k, v in self.board.items()]).replace(self.agent_symbol, '*')\
+            .replace(self.opponent_symbol, '*').count('*')
+        available_positions = [k for k, v in self.board.items() if not v.strip()]
+        if no_of_moves < 2:
+            choice = random.choice(available_positions)
+            return choice
+        else:
+            return None
 
     def is_board_empty(self) -> bool:
         """
