@@ -39,8 +39,8 @@ class TicTacToeAgent:
         self.agent_symbol = agent_symbol                         # :str: Agent symbol on board.
         self.opponent_symbol = self.__get_opponent_symbol()      # :str: Opponent symbol on board.
         self.accuracy = accuracy                                 # :float: Desired agent accuracy (0-1).
-        self.current_branch_depth = None                         # :int: Current possible branch depth.
-        self.maximum_branch_depth = None                         # :int: Maximum branch depth to be calculated.
+        self.maximum_branch_depth = None                         # :int: Current possible branch depth.
+        self.limit_branch_depth = None                           # :int: Limit branch depth to be calculated.
 
     def get_move(self) -> str:
         """
@@ -114,7 +114,7 @@ class TicTacToeAgent:
     def __get_possibility_tree(self, board: dict, possibility_tree: dict = None, agent_turn: bool = True,
                                branch_level: int = 0) -> dict:
         """
-        Recursively builds the position possibilities tree.
+        Recursively builds the possibilities tree.
         :param board: Dictionary containing current board situation.
         :param possibility_tree: Possibility tree under construction.
         :param agent_turn: Boolean stating if it's the agent's turn or not.
@@ -134,13 +134,13 @@ class TicTacToeAgent:
         # Updates current branch level value.
         branch_level += 1
 
-        # If maximum branch level has exceeded, returns empty branch.
-        if branch_level > self.maximum_branch_depth: return {}
+        # If maximum branch level has been exceeded, returns empty branch.
+        if branch_level > self.limit_branch_depth: return {}
 
         # Iterates on available board positions.
         for play in available_plays:
 
-            # Updates board with current iteration's position.
+            # Creates updated board with current iteration's position. (Passing a copy is needed)
             updated_board = dict(board)
             updated_board[play] = self.agent_symbol if agent_turn else self.opponent_symbol
 
@@ -222,12 +222,12 @@ class TicTacToeAgent:
         :return: void.
         """
 
-        self.current_branch_depth = len([v for k, v in self.board.items() if not v.strip()])
-        if self.accuracy <= 0: self.maximum_branch_depth = 2
-        elif self.accuracy > 1: self.maximum_branch_depth = self.current_branch_depth
+        self.maximum_branch_depth = len([v for k, v in self.board.items() if not v.strip()])
+        if self.accuracy <= 0: self.limit_branch_depth = 2
+        elif self.accuracy > 1: self.limit_branch_depth = self.maximum_branch_depth
         else:
-            self.maximum_branch_depth = math.ceil(self.current_branch_depth*self.accuracy)
-            if self.maximum_branch_depth < 2: self.maximum_branch_depth = 2
+            self.limit_branch_depth = math.ceil(self.maximum_branch_depth * self.accuracy)
+            if self.limit_branch_depth < 2: self.limit_branch_depth = 2
 
     def print_board(self):
         """
