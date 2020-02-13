@@ -1,4 +1,5 @@
 import json, random
+import math
 
 
 class PlayNode:
@@ -27,7 +28,7 @@ class TicTacToeAgent:
         ('4', '5', '6'), ('7', '8', '9')
     ]
 
-    def __init__(self, board: dict, agent_symbol: str):
+    def __init__(self, board: dict, agent_symbol: str, accuracy: float = 1):
         """
         Agent constructor, stores given board situation and player symbols.
         :param board: Given board situation.
@@ -37,6 +38,9 @@ class TicTacToeAgent:
         self.board = dict(board)                                 # :dict: Given board situation.
         self.agent_symbol = agent_symbol                         # :str: Agent symbol on board.
         self.opponent_symbol = self.__get_opponent_symbol()      # :str: Opponent symbol on board.
+        self.accuracy = accuracy                                 # :float: Desired agent accuracy (0-1).
+        self.current_branch_depth = None                         # :int: Current possible branch depth.
+        self.maximum_branch_depth = None                         # :int: Maximum branch depth to be calculated.
 
     def get_move(self) -> str:
         """
@@ -45,7 +49,7 @@ class TicTacToeAgent:
         """
 
         # Returns random movement selection for first movement if applicable.
-        if (self.RANDOM_INITIAL_MOVES and self.__is_initial_move()) or self.__is_board_empty():
+        if (self.RANDOM_INITIAL_MOVES and self.__is_initial_move()) or self.__is_initial_move(1):
             return self.__get_random_move()
 
         # Returns calculated movement choice.
@@ -60,7 +64,7 @@ class TicTacToeAgent:
         # Generates random movement considering free board positions.
         movement = random.choice([k for k, v in self.board.items() if not v.strip()])
         if self.PRINT_AVAILABLE_PLAYS_SCORE:
-            print(f'0 -> Random move: {movement}')
+            print(f'Random chosen move: {movement}')
 
         # Updates internal board and returns move.
         self.board[movement] = self.agent_symbol
@@ -71,6 +75,9 @@ class TicTacToeAgent:
         Triggers movement selection logic and returns result.
         :return: Integer denoting result.
         """
+
+        # Updates current boards branch depth values.
+        self.__update_branch_depths()
 
         # Recursively calculates complete possibility tree and logs result if required.
         possibility_tree = self.__get_possibility_tree(board=self.board)
@@ -124,6 +131,9 @@ class TicTacToeAgent:
 
         # Updates current branch level value.
         branch_level += 1
+
+        # If maximum branch level has exceeded, returns empty branch.
+        if branch_level > self.maximum_branch_depth: return {}
 
         # Iterates on available board positions.
         for play in available_plays:
@@ -187,13 +197,13 @@ class TicTacToeAgent:
 
         return None, 0
 
-    def __is_initial_move(self) -> bool:
+    def __is_initial_move(self, move: int = 2) -> bool:
         """
         Checks if it's an initial move. Might be first of second board move.
         :return: Boolean denoting if it's first or second move.
         """
 
-        return 9-[v for k, v in self.board.items()].count(' ') < 2
+        return 9-[v for k, v in self.board.items()].count(' ') < move
 
     def __is_board_empty(self) -> bool:
         """
@@ -211,6 +221,20 @@ class TicTacToeAgent:
 
         if self.agent_symbol == 'X': return 'O'
         else: return 'X'
+
+    def __update_branch_depths(self):
+        """
+        Updates current and maximum branch values of board.
+        :return: void.
+        """
+
+        self.current_branch_depth = len([v for k, v in self.board.items() if not v.strip()])
+        if self.accuracy <= 0:
+            self.maximum_branch_depth = 1
+        elif self.accuracy > 1:
+            self.maximum_branch_depth = self.current_branch_depth
+        else:
+            self.maximum_branch_depth = math.ceil(self.current_branch_depth*self.accuracy)
 
     def print_board(self):
         """
@@ -242,9 +266,11 @@ if __name__ == "__main__":
 
     TicTacToeAgent.PRINT_POSSIBILITY_TREE = True
     TicTacToeAgent.PRINT_AVAILABLE_PLAYS_SCORE = True
-    agent_symbol = 'X'
 
-    agent = TicTacToeAgent(current_board, agent_symbol)
+    agent_symbol = 'X'
+    max_branch_depth = 1
+
+    agent = TicTacToeAgent(current_board, agent_symbol, max_branch_depth)
     this_move = agent.get_move()
 
     print(f"Agent symbol: {agent_symbol}")
