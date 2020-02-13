@@ -181,7 +181,7 @@ class TicTacToeAgent:
 
         for a, b, c in cls.VICTORY_CONDITIONS:
             if board[str(a)] == board[str(b)] == board[str(c)] != ' ':
-                return board[a], 10
+                return board[str(a)], 10
 
         return None, 0
 
