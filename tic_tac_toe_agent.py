@@ -84,7 +84,7 @@ class TicTacToeAgent:
         # Returns movement choice or None if board has no available position.
         return chosen_move
 
-    def __get_possibility_tree(self, board, possibility_tree: dict = None, agent_turn: bool = True,
+    def __get_possibility_tree(self, board: dict, possibility_tree: dict = None, agent_turn: bool = True,
                                branch_level: int = 0) -> dict:
         """
         Recursively builds the position possibilities tree.
@@ -142,7 +142,7 @@ class TicTacToeAgent:
         return possibility_tree
 
     @classmethod
-    def __evaluate_moves(cls, moves: dict, branch_score = 0):
+    def __evaluate_moves(cls, moves: dict, branch_score: float = 0) -> float:
         """
         Recursively evaluates current branch score.
         :param moves: Dictionary containing current position and associated node.
@@ -161,7 +161,7 @@ class TicTacToeAgent:
         return branch_score
 
     @classmethod
-    def __check_victory(cls, board):
+    def __check_victory(cls, board: dict) -> (str, int):
         """
         Checks victory conditions.
         :param board: Dictionary containing board to be analyzed.
@@ -175,7 +175,7 @@ class TicTacToeAgent:
         return None, 0
 
     @staticmethod
-    def get_initial_move():
+    def get_initial_move() -> str:
         """
         Randomizes initial move according to given positions.
         :return: String denoting move.
@@ -183,7 +183,7 @@ class TicTacToeAgent:
 
         return str(random.choice(range(1, 10)))
 
-    def is_board_empty(self):
+    def is_board_empty(self) -> bool:
         """
         Checks if internal board is empty denoting first play.
         :return: Boolean denoting if internal board is empty or not.
@@ -204,7 +204,7 @@ class TicTacToeAgent:
         print("-+-+-")
         print(f"{b['1']}|{b['2']}|{b['3']}")
 
-    def get_board(self):
+    def get_board(self) -> dict:
         """
         Exposes current internal board.
         :return: Dictionary containing current internal board.
@@ -212,7 +212,7 @@ class TicTacToeAgent:
 
         return self.board
 
-    def __get_opponent_symbol(self):
+    def __get_opponent_symbol(self) -> str:
         """
         Deduces opponent symbol.
         :return: String containing opponent symbol.
