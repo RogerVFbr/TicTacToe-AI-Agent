@@ -38,7 +38,7 @@ def game():
         printBoard(theBoard)
         print("It's your turn," + turn + ".Move to which place?")
 
-        agent = TicTacToeAgent(theBoard, turn)
+        agent = TicTacToeAgent(theBoard, turn, 0.3)
         move = agent.get_move()
         # move = input()
 

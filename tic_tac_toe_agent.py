@@ -64,6 +64,7 @@ class TicTacToeAgent:
         # Generates random movement considering free board positions.
         movement = random.choice([k for k, v in self.board.items() if not v.strip()])
         if self.PRINT_AVAILABLE_PLAYS_SCORE:
+            print()
             print(f'Random chosen move: {movement}')
 
         # Updates internal board and returns move.
@@ -96,8 +97,9 @@ class TicTacToeAgent:
         # Sorts by best score and displays results if required.
         next_moves = sorted(next_moves, key=lambda k: k['branch_score'], reverse=True)
         if self.PRINT_AVAILABLE_PLAYS_SCORE:
-            for i, x in enumerate(next_moves):
-                print(f"{i} -> Move: {x.get('move')} | Branch score: {x.get('branch_score')}")
+            print()
+            for x in next_moves:
+                print(f"-> Move: {x.get('move')} | Branch score: {x.get('branch_score')}")
 
         # Randomizes chosen move amongst best equally scored moves.
         best_move_score = next_moves[0].get('branch_score')
@@ -229,12 +231,11 @@ class TicTacToeAgent:
         """
 
         self.current_branch_depth = len([v for k, v in self.board.items() if not v.strip()])
-        if self.accuracy <= 0:
-            self.maximum_branch_depth = 1
-        elif self.accuracy > 1:
-            self.maximum_branch_depth = self.current_branch_depth
+        if self.accuracy <= 0: self.maximum_branch_depth = 2
+        elif self.accuracy > 1: self.maximum_branch_depth = self.current_branch_depth
         else:
             self.maximum_branch_depth = math.ceil(self.current_branch_depth*self.accuracy)
+            if self.maximum_branch_depth < 2: self.maximum_branch_depth = 2
 
     def print_board(self):
         """
