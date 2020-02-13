@@ -33,8 +33,8 @@ def game():
     turn = 'X'
     count = 0
 
-
     for i in range(10):
+        print('')
         printBoard(theBoard)
         print("It's your turn," + turn + ".Move to which place?")
 

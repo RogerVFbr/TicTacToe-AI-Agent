@@ -17,29 +17,39 @@ class TicTacToeAgent:
     Tic tac toe playing AI Agent.
     """
 
-    AGENT_SYMBOL = 'X'
-    OPPONENT_SYMBOL = 'O'
+    PRINT_AVAILABLE_PLAYS_SCORE = False                         # :bool: Enables play score on screen printing.
+    PRINT_POSSIBILITY_TREE = False                              # :bool: Enables possibility tree on screen printing.
+    VICTORY_CONDITIONS = [                                      # :list: Board formations indicating victory.
+        ('1', '2', '3'), ('1', '4', '7'), ('1', '5', '9'),
+        ('2', '5', '8'), ('3', '5', '7'), ('3', '6', '9'),
+        ('4', '5', '6'), ('7', '8', '9')
+    ]
 
-    PRINT_AVAILABLE_PLAYS_SCORE = False
-    PRINT_POSSIBILITY_TREE = False
+    def __init__(self, board: dict, agent_symbol: str):
+        """
+        Agent constructor, stores given board situation and player symbols.
+        :param board: Given board situation.
+        :param agent_symbol: Symbol to be assigned to agent.
+        """
 
-    def __init__(self, board, agent_symbol):
-        self.board = dict(board)
-        type(self).AGENT_SYMBOL = agent_symbol
-        type(self).OPPONENT_SYMBOL = self.__get_opponent_symbol()
+        self.board = dict(board)                                 # :dict: Given board situation.
+        self.agent_symbol = agent_symbol                         # :str: Agent symbol on board.
+        self.opponent_symbol = self.__get_opponent_symbol()      # :str: Opponent symbol on board.
 
-    def get_move(self):
+    def get_move(self) -> str:
         """
         Triggers movement selection logic and returns result.
         :return: Integer denoting result.
         """
 
-        # If board is empty, get special initial position, log, update internal board and return value.
+        # If board is empty, get special initial position and logs if required.
         if self.is_board_empty():
             initial_move = self.get_initial_move()
             if self.PRINT_AVAILABLE_PLAYS_SCORE:
                 print(f'0 -> Special initial move: {initial_move}')
-            self.board[initial_move] = self.AGENT_SYMBOL
+
+            # Update internal board with chosen move end return value.
+            self.board[initial_move] = self.agent_symbol
             return initial_move
 
         # Recursively calculates complete possibility tree and logs result if required.
@@ -47,79 +57,84 @@ class TicTacToeAgent:
         if self.PRINT_POSSIBILITY_TREE:
             print(json.dumps(possibility_tree, indent=4, sort_keys=False))
 
-        # Evaluates each position's branch score, sorts by best score and displays results if required.
+        # Evaluates each position's branch score.
         next_moves = []
         for move, node in possibility_tree.items():
             branch_score = self.__evaluate_moves({move: node})
             next_moves.append({
                 'move': move,
-                'branch_score': branch_score
+                'branch_score': round(branch_score, 7)
             })
+
+        # Sorts by best score and displays results if required.
         next_moves = sorted(next_moves, key=lambda k: k['branch_score'], reverse=True)
         if self.PRINT_AVAILABLE_PLAYS_SCORE:
             for i, x in enumerate(next_moves):
                 print(f"{i} -> Move: {x.get('move')} | Branch score: {x.get('branch_score')}")
 
+        # Randomizes chosen move amongst best equally scored moves.
+        best_move_score = next_moves[0].get('branch_score')
+        chosen_move = random.choice([x.get('move') for x in next_moves if x.get('branch_score') == best_move_score])
+        if self.PRINT_AVAILABLE_PLAYS_SCORE:
+            print(f"Chosen move: {chosen_move}")
+
         # Updates internal board with new position.
-        this_move = next_moves[0].get('move')
-        if this_move:
-            self.board[this_move] = self.AGENT_SYMBOL
+        self.board[chosen_move] = self.agent_symbol
 
         # Returns movement choice or None if board has no available position.
-        return this_move
+        return chosen_move
 
-    @classmethod
-    def __get_possibility_tree(cls, board, possibility_tree: dict = None, agent_turn: bool = True,
-                               score_multiplier: float = 10):
+    def __get_possibility_tree(self, board, possibility_tree: dict = None, agent_turn: bool = True,
+                               branch_level: int = 0) -> dict:
         """
         Recursively builds the position possibilities tree.
         :param board: Dictionary containing current board situation.
         :param possibility_tree: Possibility tree under construction.
         :param agent_turn: Boolean stating if it's the agent's turn or not.
-        :param score_multiplier: Current score multiplier.
+        :param branch_level: Current score multiplier.
         :return: Dictionary containing possibility tree.
         """
 
         # Initializes possibility tree if none was provided.
         if not possibility_tree: possibility_tree = {}
 
-        # Gets available board positions.
+        # Gets available board positions for this branch.
         available_plays = [k for k, v in board.items() if not v.strip()]
 
         # If no positions are left, returns empty branch.
-        if len(available_plays) == 0:
-            return {}
+        if len(available_plays) == 0: return {}
 
-        # Updates score multiplier for current branch.
-        score_multiplier = score_multiplier*0.1
+        # Updates current branch level value.
+        branch_level += 1
+        # print(branch_level, str(available_plays))
 
         # Iterates on available board positions.
         for play in available_plays:
 
             # Updates board with current iteration's position.
             updated_board = dict(board)
-            if agent_turn:
-                updated_board[play] = cls.AGENT_SYMBOL
-            else:
-                updated_board[play] = cls.OPPONENT_SYMBOL
+            updated_board[play] = self.agent_symbol if agent_turn else self.opponent_symbol
 
             # Evaluates current move score.
-            score = 0
-            victory = cls.__check_victory(updated_board)
-            if victory:
-                score = 10*score_multiplier if victory == cls.AGENT_SYMBOL else -10*score_multiplier
+            victory, score = self.__check_victory(updated_board)
+            if victory and branch_level > 1:
+                score /= 10**(branch_level-1) if victory == self.agent_symbol else -(10**(branch_level-1))
+
+            # If there's a victory or loss on first move, prioritize attack.
+            elif victory:
+                score = score if victory == self.agent_symbol else -score*0.9
 
             # Creates node for currently analyzed position.
             possibility_tree[str(play)] = PlayNode(score, agent_turn).__dict__
 
-            # Populates current node's branch with new node if victory hasn't been achieved.
+            # Populates current branch and adds new node to the sub-branch if victory hasn't been achieved.
             if not victory:
                 possibility_tree[str(play)]['branch'] = \
-                    cls.__get_possibility_tree(
+                    self.__get_possibility_tree(
                         board=updated_board,
                         possibility_tree=possibility_tree[str(play)]['branch'],
                         agent_turn=not agent_turn,
-                        score_multiplier=score_multiplier
+                        branch_level=branch_level
                     )
             else:
                 possibility_tree[str(play)]['branch'] = {}
@@ -153,26 +168,20 @@ class TicTacToeAgent:
         :return: Symbol of winner or None case no winners.
         """
 
-        conditions = [
-            ('1', '2', '3'),
-            ('1', '4', '7'),
-            ('1', '5', '9'),
-            ('2', '5', '8'),
-            ('3', '5', '7'),
-            ('3', '6', '9'),
-            ('4', '5', '6'),
-            ('7', '8', '9'),
-        ]
-
-        for a, b, c in conditions:
+        for a, b, c in cls.VICTORY_CONDITIONS:
             if board[a] == board[b] == board[c] != ' ':
-                return board[a]
+                return board[a], 10
 
-        return None
+        return None, 0
 
     @staticmethod
     def get_initial_move():
-        return random.choice(['1', '3', '5', '7', '9'])
+        """
+        Randomizes initial move according to given positions.
+        :return: String denoting move.
+        """
+
+        return str(random.choice(range(1, 10)))
 
     def is_board_empty(self):
         """
@@ -187,11 +196,13 @@ class TicTacToeAgent:
         Prints current internal board.
         :return: void.
         """
-        print(self.board['7'] + '|' + self.board['8'] + '|' + self.board['9'])
-        print('-+-+-')
-        print(self.board['4'] + '|' + self.board['5'] + '|' + self.board['6'])
-        print('-+-+-')
-        print(self.board['1'] + '|' + self.board['2'] + '|' + self.board['3'])
+
+        b = self.board
+        print(f"{b['7']}|{b['8']}|{b['9']}")
+        print("-+-+-")
+        print(f"{b['4']}|{b['5']}|{b['6']}")
+        print("-+-+-")
+        print(f"{b['1']}|{b['2']}|{b['3']}")
 
     def get_board(self):
         """
@@ -204,13 +215,11 @@ class TicTacToeAgent:
     def __get_opponent_symbol(self):
         """
         Deduces opponent symbol.
-        :return:
+        :return: String containing opponent symbol.
         """
 
-        if type(self).AGENT_SYMBOL == 'X':
-            return 'O'
-        else:
-            return 'X'
+        if self.agent_symbol == 'X': return 'O'
+        else: return 'X'
 
 
 if __name__ == "__main__":
@@ -224,9 +233,9 @@ if __name__ == "__main__":
     agent_symbol = 'X'
 
     agent = TicTacToeAgent(current_board, agent_symbol)
-    chosen_move = agent.get_move()
+    this_move = agent.get_move()
 
     print(f"Agent symbol: {agent_symbol}")
-    print(f'Chosen move: {chosen_move}')
+    print(f'Chosen move: {this_move}')
     print('Final test board:')
     agent.print_board()
