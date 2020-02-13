@@ -21,10 +21,8 @@ class TicTacToeAgent:
     PRINT_POSSIBILITY_TREE = False                       # :bool: Enables possibility tree on screen printing.
     RANDOM_INITIAL_MOVES = False                         # :bool: First move of agent is random despite playing order.
     VICTORY_CONDITIONS = [                               # :list: Board formations indicating victory.
-        ('1', '2', '3'), ('1', '4', '7'),
-        ('1', '5', '9'), ('2', '5', '8'),
-        ('3', '5', '7'), ('3', '6', '9'),
-        ('4', '5', '6'), ('7', '8', '9')
+        (1, 2, 3), (1, 4, 7), (1, 5, 9), (2, 5, 8),
+        (3, 5, 7), (3, 6, 9), (4, 5, 6), (7, 8, 9)
     ]
 
     def __init__(self, board: dict, agent_symbol: str):
@@ -182,7 +180,7 @@ class TicTacToeAgent:
         """
 
         for a, b, c in cls.VICTORY_CONDITIONS:
-            if board[a] == board[b] == board[c] != ' ':
+            if board[str(a)] == board[str(b)] == board[str(c)] != ' ':
                 return board[a], 10
 
         return None, 0
