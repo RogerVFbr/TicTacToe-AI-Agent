@@ -224,7 +224,7 @@ class TicTacToeAgent:
 
     def __update_branch_depths(self):
         """
-        Updates current and maximum branch values of board.
+        Updates current and maximum branch numbers of board.
         :return: void.
         """
 
