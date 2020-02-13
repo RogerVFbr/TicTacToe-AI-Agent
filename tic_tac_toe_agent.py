@@ -17,12 +17,14 @@ class TicTacToeAgent:
     Tic tac toe playing AI Agent.
     """
 
-    PRINT_AVAILABLE_PLAYS_SCORE = True                  # :bool: Enables play evaluation on screen printing.
+    PRINT_AVAILABLE_PLAYS_SCORE = True                   # :bool: Enables play evaluation on screen printing.
     PRINT_POSSIBILITY_TREE = False                       # :bool: Enables possibility tree on screen printing.
-    RANDOM_INITIAL_MOVES = True                         # :bool: First move of agent is random despite playing order.
+    RANDOM_INITIAL_MOVES = False                         # :bool: First move of agent is random despite playing order.
     VICTORY_CONDITIONS = [                               # :list: Board formations indicating victory.
-        (1, 2, 3), (1, 4, 7), (1, 5, 9), (2, 5, 8),
-        (3, 5, 7), (3, 6, 9), (4, 5, 6), (7, 8, 9)
+        ('1', '2', '3'), ('1', '4', '7'),
+        ('1', '5', '9'), ('2', '5', '8'),
+        ('3', '5', '7'), ('3', '6', '9'),
+        ('4', '5', '6'), ('7', '8', '9')
     ]
 
     def __init__(self, board: dict, agent_symbol: str):
@@ -38,31 +40,37 @@ class TicTacToeAgent:
 
     def get_move(self) -> str:
         """
+        Selects position choice criteria and returns chosen position.
+        :return: Chosen board position.
+        """
+
+        # Returns random movement selection for first movement if applicable.
+        if (self.RANDOM_INITIAL_MOVES and self.__is_initial_move()) or self.__is_board_empty():
+            return self.__get_random_move()
+
+        # Returns calculated movement choice.
+        else:
+            return self.__get_agent_move()
+
+    def __get_random_move(self):
+        """
+        Returns random movement for agent.
+        """
+
+        # Generates random movement considering free board positions.
+        movement = random.choice([k for k, v in self.board.items() if not v.strip()])
+        if self.PRINT_AVAILABLE_PLAYS_SCORE:
+            print(f'0 -> Random move: {movement}')
+
+        # Updates internal board and returns move.
+        self.board[movement] = self.agent_symbol
+        return movement
+
+    def __get_agent_move(self) -> str:
+        """
         Triggers movement selection logic and returns result.
         :return: Integer denoting result.
         """
-
-        # If enabled, first move of agent is random, being the first or second to play.
-        if self.RANDOM_INITIAL_MOVES:
-            if self.is_initial_move():
-                initial_move = self.get_random_move()
-                if self.PRINT_AVAILABLE_PLAYS_SCORE:
-                    print(f'0 -> Random move: {initial_move}')
-
-                # Updates internal board and returns move.
-                self.board[initial_move] = self.agent_symbol
-                return initial_move
-
-        # Random initial moves is disabled, agent plays randomly only if it's the first to play.
-        else:
-            if self.is_board_empty():
-                initial_move = self.get_random_move()
-                if self.PRINT_AVAILABLE_PLAYS_SCORE:
-                    print(f'0 -> Random move: {initial_move}')
-
-                # Update internal board with chosen move end returns move.
-                self.board[initial_move] = self.agent_symbol
-                return initial_move
 
         # Recursively calculates complete possibility tree and logs result if required.
         possibility_tree = self.__get_possibility_tree(board=self.board)
@@ -90,10 +98,8 @@ class TicTacToeAgent:
         if self.PRINT_AVAILABLE_PLAYS_SCORE:
             print(f"Chosen move: {chosen_move}")
 
-        # Updates internal board with new position.
+        # Updates internal board with new position and returns choice.
         self.board[chosen_move] = self.agent_symbol
-
-        # Returns movement choice or None if board has no available position.
         return chosen_move
 
     def __get_possibility_tree(self, board: dict, possibility_tree: dict = None, agent_turn: bool = True,
@@ -128,12 +134,8 @@ class TicTacToeAgent:
 
             # Evaluates current move score.
             victory, score = self.__check_victory(updated_board)
-            if victory and branch_level > 1:
+            if victory:
                 score /= 10**(branch_level-1) if victory == self.agent_symbol else -(10**(branch_level-1))
-
-            # If there's a victory or loss on first move, prioritize attack.
-            elif victory:
-                score = score if victory == self.agent_symbol else -score*0.9
 
             # Creates node for currently analyzed position.
             possibility_tree[str(play)] = PlayNode(score, agent_turn).__dict__
@@ -180,20 +182,12 @@ class TicTacToeAgent:
         """
 
         for a, b, c in cls.VICTORY_CONDITIONS:
-            if board[str(a)] == board[str(b)] == board[str(c)] != ' ':
-                return board[str(a)], 10
+            if board[a] == board[b] == board[c] != ' ':
+                return board[a], 10
 
         return None, 0
 
-    def get_random_move(self) -> str:
-        """
-        Randomizes initial move considering free positions.
-        :return: String denoting move.
-        """
-
-        return random.choice([k for k, v in self.board.items() if not v.strip()])
-
-    def is_initial_move(self) -> bool:
+    def __is_initial_move(self) -> bool:
         """
         Checks if it's an initial move. Might be first of second board move.
         :return: Boolean denoting if it's first or second move.
@@ -201,13 +195,22 @@ class TicTacToeAgent:
 
         return 9-[v for k, v in self.board.items()].count(' ') < 2
 
-    def is_board_empty(self) -> bool:
+    def __is_board_empty(self) -> bool:
         """
         Checks if internal board is empty.
         :return: Boolean denoting if internal board is empty or not.
         """
 
         return len({v for k, v in self.board.items()}) == 1
+
+    def __get_opponent_symbol(self) -> str:
+        """
+        Deduces opponent symbol.
+        :return: String containing opponent symbol.
+        """
+
+        if self.agent_symbol == 'X': return 'O'
+        else: return 'X'
 
     def print_board(self):
         """
@@ -229,15 +232,6 @@ class TicTacToeAgent:
         """
 
         return self.board
-
-    def __get_opponent_symbol(self) -> str:
-        """
-        Deduces opponent symbol.
-        :return: String containing opponent symbol.
-        """
-
-        if self.agent_symbol == 'X': return 'O'
-        else: return 'X'
 
 
 if __name__ == "__main__":
