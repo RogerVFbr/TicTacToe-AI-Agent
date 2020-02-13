@@ -78,7 +78,7 @@ class TicTacToeAgent:
         :return: Integer denoting result.
         """
 
-        # Updates current boards branch depth values.
+        # Updates current board's branch depth values.
         self.__update_branch_depths()
 
         # Recursively calculates complete possibility tree and logs result if required.
