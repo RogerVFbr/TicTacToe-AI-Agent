@@ -33,6 +33,7 @@ class TicTacToeAgent:
         Agent constructor, stores given board situation and general states.
         :param board: Given board situation.
         :param agent_symbol: Symbol to be assigned to agent.
+        :param accuracy: Limits calculated branch levels as a percent of the maximum number of branch levels.
         """
 
         self.board = dict(board)                                 # :dict: Given board situation.
